@@ -77,6 +77,33 @@ except:
     
     master.mainloop()
 
+def GetCurrentMonth(br):
+    
+    ''' Gets string for the month and year showing on screen (eg: 'July 2021') and returns the month only (eg:'July')
+    Inputs: br --> the web browser driver
+    Outputs: string of the current month (eg: 'July')
+    '''
+    
+    currentMonthWebElement = br.find_element_by_id("UI_Form__CalendarDropDownMixin_0_label")
+    currentMonthString = currentMonthWebElement.text # format eg: 'July 2021'
+    currentMonthList = currentMonthString.split(" ") # Creates list from string: ['July','2021']
+    
+    return currentMonthList[0] # eg: ['July','2021'] --> returns month string: 'July'
+
+def CalculateNextMonth(currentMonthString):
+    
+    '''Calculate what the next month should be based on the current month.
+    Inputs: currentMonthString (eg: 'July')
+    Outputs: String of next month: (eg: 'August')
+    '''
+    
+    monthList = ['January','February','March','April','May','June','July','August']
+    nextMonthIndex = monthList.index(currentMonthString) + 1
+    nextMonthString = monthList[nextMonthIndex]
+    
+    return nextMonthString
+
+
 
 print('   Program starting')
 br = webdriver.Firefox() #Automatically waits for browser to load before moving on
@@ -143,7 +170,7 @@ while FindCal:
 
 cal.click()
 
-
+# First screen shot here:
 # Poll for an element of the webpage to determine when page has loaded (polls for '01' text string in the calendar using xpath search
 WaitForScreen = True
 
@@ -155,9 +182,16 @@ while WaitForScreen:
     except:
         pass
 
+
+# Grab name of month showing (for use later in program, when grabbing next month's screenshot)
+
+currentMonthString = GetCurrentMonth(br)
+
+print(' ============= testing GetCurrentMonth() Function: ',currentMonthString)
+
 #time.sleep(15) # Consider removing this delay and instead search the page until it find the element of the first day of the week (01). Or search
 # for class DayLabel
-br.save_screenshot('C:/Users/j/Desktop/sched.png') #switched: "...Users/Baum/...", for "...Users/j/..."
+br.save_screenshot('C:/Users/Baum/Desktop/sched.png') #switched: "...Users/Baum/...", for "...Users/j/..."
 print()
 print('   screenshot saved to desktop')
 
@@ -168,9 +202,9 @@ monthp = month + '.png'
 print('   current month:',month)
 
 # get path of screenshot and rename the file with the current month from above (ie. August 2019.png)
-x = Path('C:/Users/j/Desktop/sched.png')               #switched: "...Users/Baum/...", for "...Users/j/..."
+x = Path('C:/Users/Baum/Desktop/sched.png')               #switched: "...Users/Baum/...", for "...Users/j/..."
 # Note: include an extra directory (ie: '/documents') in the p = Path... because the next line (os.path...) will cut off the last directory of the path
-p = Path("C:/Users/j/Desktop/Documents")               #switched: "...Users/Baum/...", for "...Users/j/..."
+p = Path("C:/Users/Baum/Desktop/Documents")               #switched: "...Users/Baum/...", for "...Users/j/..."
 # join the path (C:/Users/Baum/Desktop/) with the file name (August 2019.png)
 pp = os.path.join(os.path.dirname(p), monthp)
 print('   path of current month:',pp)
@@ -195,29 +229,64 @@ print()
 nexmonth = br.find_element_by_id('Button_36').click()
 print('   move to next month')
 
-print('============ New Code Test Starts NOW =======')
+
 
 #time.sleep(5) Remove this delay and replace with search loop seeking element from page
 
 # Poll for an element of the webpage to determine when page has loaded (polls for '01' text string in the calendar using xpath search
+# Note:the second month tends to come out partly blank; the screen shot is taken slightly before the full page loads. 
+# Try this solution: I think that the 
+# variable receiving the element should be given a new name (other than Fragment) because it carries the previous value from the first month. -->
+# This did not work (using SecondFragment = br.find....)
+# I think it is finding the "01" from the original page.
+# Try this: the only element properly changing is the name of the month (June to July...) The original month is fine, but then have it search for
+# the next month after that. Build a function that grabs the original month and then goes up one month from there and searches for that string.
+
+# Xpath ID for element containing month and year with a space (eg. June 2021): //*[@id="UI_Form__CalendarDropDownMixin_0_label"]
+
+
+# Setting up for second screen shot:
+nextMonth = CalculateNextMonth(currentMonthString)
 WaitForScreen = True
 
+print()
+print('============== Testing The Calculate Next Month Function =============:', nextMonth)
+print()
+# This below works code wise however the month name is loaded ahead of the calendar therefore the
+# screenshot still comes out without the calendar. Solution: after determining the month has moved, then 
+# poll for the 01!
+while WaitForScreen:
+    
+    print('Checking if screen has loaded title for new month:',GetCurrentMonth(br), nextMonth)
+    if GetCurrentMonth(br) == nextMonth:
+        print('post if statement',GetCurrentMonth(br), nextMonth)
+        
+        WaitForScreen = False
+    else:
+        continue
+
+# Now that the month is determined to have moved, now you can poll for the 01 and know it is 
+# for a new month.
+print()
+WaitForScreen = True # set back to true since the previous block set it to False
 while WaitForScreen:
 
     try:
-        Fragment = br.find_element_by_xpath("//div[contains(text(),\'01')]")
+        print('searching for calendar element 01')
+        SecondFragment = br.find_element_by_xpath("//div[contains(text(),\'01')]")
         WaitForScreen = False
     except:
         pass
-print('======= Check Fragment for content: '+ Fragment.text)
-br.save_screenshot('C:/Users/j/Desktop/nexmonth.png') #switched: "...Users/Baum/...", for "...Users/j/..."
+
+
+br.save_screenshot('C:/Users/Baum/Desktop/nexmonth.png') #switched: "...Users/Baum/...", for "...Users/j/..."
 
 month = br.find_element_by_id('UI_Form__CalendarDropDownMixin_0_label')
 month = month.text
 monthp = month + '.png'
 print('   next month:',month)
 
-x = Path('C:/Users/j/Desktop/nexmonth.png') #switched: "...Users/Baum/...", for "...Users/j/..."
+x = Path('C:/Users/Baum/Desktop/nexmonth.png') #switched: "...Users/Baum/...", for "...Users/j/..."
 
 pp = os.path.join(os.path.dirname(p), monthp)
 
@@ -235,7 +304,9 @@ while rename:
 
 print('    - next month file complete')
 print()
-print('Both months saved to Desktop; all work done')
+print('Both months saved to Desktop;')
+print()
+print("Job Completed")
 
 
 
