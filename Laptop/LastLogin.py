@@ -185,7 +185,7 @@ while WaitForScreen:
 
 # Grab name of month showing (for use later in program, when grabbing next month's screenshot)
 
-currentMonthString = GetCurrentMonth(br)
+currentMonthString = GetCurrentMonth(br) # used for argument for CalculateNextMonth()
 
 print(' ============= testing GetCurrentMonth() Function: ',currentMonthString)
 
@@ -226,11 +226,6 @@ while rename:
 print("    - current month ready")
 print()
 
-nexmonth = br.find_element_by_id('Button_36').click()
-print('   move to next month')
-
-
-
 #time.sleep(5) Remove this delay and replace with search loop seeking element from page
 
 # Poll for an element of the webpage to determine when page has loaded (polls for '01' text string in the calendar using xpath search
@@ -244,13 +239,15 @@ print('   move to next month')
 
 # Xpath ID for element containing month and year with a space (eg. June 2021): //*[@id="UI_Form__CalendarDropDownMixin_0_label"]
 
+nexmonth = br.find_element_by_id('Button_36').click()
+print('   move to next month')
 
 # Setting up for second screen shot:
 nextMonth = CalculateNextMonth(currentMonthString)
 WaitForScreen = True
 
 print()
-print('============== Testing The Calculate Next Month Function =============:', nextMonth)
+print('============== Testing Get Current Month Function =============:', nextMonth)
 print()
 # This below works code wise however the month name is loaded ahead of the calendar therefore the
 # screenshot still comes out without the calendar. Solution: after determining the month has moved, then 
@@ -258,6 +255,7 @@ print()
 while WaitForScreen:
     
     print('Checking if screen has loaded title for new month:',GetCurrentMonth(br), nextMonth)
+    print()
     if GetCurrentMonth(br) == nextMonth:
         print('post if statement',GetCurrentMonth(br), nextMonth)
         
@@ -268,12 +266,14 @@ while WaitForScreen:
 # Now that the month is determined to have moved, now you can poll for the 01 and know it is 
 # for a new month.
 print()
+c = 1
 WaitForScreen = True # set back to true since the previous block set it to False
 while WaitForScreen:
 
     try:
-        print('searching for calendar element 01')
-        SecondFragment = br.find_element_by_xpath("//div[contains(text(),\'01')]")
+        print(str(c) + ' searching for calendar element 28')
+        c += 1
+        SecondFragment = br.find_element_by_xpath("//div[contains(text(),\'28')]")
         WaitForScreen = False
     except:
         pass
